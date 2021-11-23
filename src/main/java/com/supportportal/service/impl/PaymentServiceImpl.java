@@ -1,6 +1,8 @@
 package com.supportportal.service.impl;
 
 import com.supportportal.domain.Payment;
+import com.supportportal.exception.domain.PaymentExistException;
+import com.supportportal.exception.domain.PaymentNotFoundException;
 import com.supportportal.repository.PaymentRepository;
 import com.supportportal.service.PaymentService;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -8,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -21,21 +24,21 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public Payment register(String username, String nr_conta, String valor) {
+    public Payment register(String username, double taxa, double valor) throws PaymentNotFoundException, PaymentExistException {
         Payment payment = new Payment();
         payment.setPaymentId(generatedPaymentId());
         payment.setUsername(username);
-        payment.setNr_conta(nr_conta);
+        payment.setTaxa(taxa);
         payment.setValor(valor);
         return payment;
     }
 
     @Override
-    public Payment addNewPayment(String username, String nr_conta, String valor) {
+    public Payment addNewPayment(String username, double taxa, double valor) throws PaymentNotFoundException, PaymentExistException, IOException {
         Payment payment = new Payment();
         payment.setPaymentId(generatedPaymentId());
         payment.setUsername(username);
-        payment.setNr_conta(nr_conta);
+        payment.setTaxa(taxa);
         payment.setValor(valor);
         return payment;
     }

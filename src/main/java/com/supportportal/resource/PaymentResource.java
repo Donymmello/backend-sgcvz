@@ -13,7 +13,9 @@ import java.util.List;
 
 import static org.springframework.http.HttpStatus.OK;
 
+@ResponseBody
 @RestController
+@RequestMapping(value = "/payment")
 @CrossOrigin("http://localhost:4200")
 
 public class PaymentResource {
@@ -24,26 +26,26 @@ public class PaymentResource {
         this.paymentService = paymentService;
     }
 
-    @PostMapping("/pay_register")
+    @PostMapping("/register")
     public ResponseEntity<Payment> register(@RequestBody Payment payment) throws PaymentNotFoundException, PaymentExistException {
-        Payment newPayment = paymentService.register(payment.getUsername(), payment.getNr_conta(), payment.getValor());
+        Payment newPayment = paymentService.register(payment.getUsername(), payment.getTaxa(), payment.getValor());
         return new ResponseEntity<>(newPayment, OK);
     }
 
-    @PostMapping("/pay_add")
+    @PostMapping("/add")
     public ResponseEntity<Payment> addNewPayment(@RequestParam("username") String username,
-                                                 @RequestParam("nr_conta") String nr_conta,
-                                                 @RequestParam("valor") String valor) throws IOException {
-        Payment newPayment = paymentService.addNewPayment(username, nr_conta, valor);
+                                                 @RequestParam("taxa") double taxa,
+                                                 @RequestParam("valor") double valor) throws PaymentNotFoundException, PaymentExistException, IOException {
+        Payment newPayment = paymentService.addNewPayment(username, valor, taxa );
         return new ResponseEntity<>(newPayment, OK);
     }
 
-    @GetMapping("/pay_list")
+    @GetMapping("/list")
     public ResponseEntity<List<Payment>> getAllPayments() {
         List<Payment> payments = paymentService.getPayments();
         return new ResponseEntity<>(payments, OK);
     }
-    @GetMapping("/pay_find/{id}")
+    @GetMapping("/find/{id}")
     public ResponseEntity<Payment> getPayment(@PathVariable("id") long id) {
         Payment payment = paymentService.findPaymentById(id);
         return new ResponseEntity<>(payment, OK);

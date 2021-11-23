@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.io.IOException;
 
 @Service
 @Transactional
@@ -34,7 +35,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public Account addNewAccount(String type, double balance, User owner) {
+    public Account addNewAccount(String type, double balance, User owner) throws AccountNotFoundException, AccountExistException, IOException {
         Account account = new Account();
         account.setAccountId(generateAccountId());
         account.setType(type);

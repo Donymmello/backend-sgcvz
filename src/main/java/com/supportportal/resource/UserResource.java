@@ -2,10 +2,13 @@ package com.supportportal.resource;
 
 import com.supportportal.domain.HttpResponse;
 import com.supportportal.domain.User;
+import com.supportportal.domain.UserPrincipal;
 import com.supportportal.exception.ExceptionHandling;
 import com.supportportal.exception.domain.*;
 import com.supportportal.service.UserService;
+import com.supportportal.utility.JWTTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,6 +27,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 import static com.supportportal.constant.FileConstant.*;
+import static com.supportportal.constant.SecurityConstant.JWT_TOKEN_HEADER;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.IMAGE_JPEG_VALUE;
 
@@ -33,13 +37,15 @@ import static org.springframework.http.MediaType.IMAGE_JPEG_VALUE;
 public class UserResource extends ExceptionHandling {
     public static final String EMAIL_SENT = "An email with a new password was sent to: ";
     public static final String USER_DELETED_SUCCESSFULLY = "User deleted successfully";
-    private final AuthenticationManager authenticationManager;
-    private final UserService userService;
+    private AuthenticationManager authenticationManager;
+    private UserService userService;
+    private JWTTokenProvider jwtTokenProvider;
 
     @Autowired
-    public UserResource(AuthenticationManager authenticationManager, UserService userService) {
+    public UserResource(AuthenticationManager authenticationManager, UserService userService, JWTTokenProvider jwtTokenProvider) {
         this.authenticationManager = authenticationManager;
         this.userService = userService;
+        this.jwtTokenProvider = jwtTokenProvider;
 
     }
 
@@ -47,7 +53,9 @@ public class UserResource extends ExceptionHandling {
     public ResponseEntity<User> login(@RequestBody User user) {
         authenticate(user.getUsername(), user.getPassword());
         User loginUser = userService.findUserByUsername(user.getUsername());
-        return new ResponseEntity<>(loginUser, OK);
+        UserPrincipal userPrincipal = new UserPrincipal(loginUser);
+        HttpHeaders jwtHeader = getJwtHeader(userPrincipal);
+        return new ResponseEntity<>(loginUser, jwtHeader, OK);
     }
 
     @PostMapping("/register")
@@ -147,6 +155,12 @@ public class UserResource extends ExceptionHandling {
         return new ResponseEntity<>(new HttpResponse(httpStatus.value(), httpStatus, httpStatus.getReasonPhrase().toUpperCase(),
                 message), httpStatus);
     }
+    private HttpHeaders getJwtHeader(UserPrincipal user) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(JWT_TOKEN_HEADER, jwtTokenProvider.generateJwtToken(user));
+        return headers;
+    }
+
     private void authenticate(String username, String password) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
     }

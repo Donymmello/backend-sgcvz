@@ -1,7 +1,5 @@
 package com.supportportal.domain;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import javax.persistence.*;
 import java.io.Serializable;
 
@@ -9,23 +7,23 @@ import java.io.Serializable;
 public class Payment implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(nullable = false, updatable = false)
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Long id;
     private String paymentId;
     private String username;
-    private String nr_conta;
-    private String valor;
+    @ManyToOne
+    private Loan loan;
+    private double valor;
+    private double taxa;
 
     public Payment() {
     }
 
-    public Payment(Long id, String paymentId, String username, String nr_conta, String valor) {
+    public Payment(Long id, String paymentId, String username, double valor, double taxa) {
         this.id = id;
         this.paymentId = paymentId;
         this.username = username;
-        this.nr_conta = nr_conta;
         this.valor = valor;
+        this.taxa = taxa;
     }
 
     public Long getId() {
@@ -52,19 +50,27 @@ public class Payment implements Serializable {
         this.username = username;
     }
 
-    public String getNr_conta() {
-        return nr_conta;
+    public double getValor() {
+        return valor + taxa;
     }
 
-    public void setNr_conta(String nr_conta) {
-        this.nr_conta = nr_conta;
-    }
-
-    public String getValor() {
-        return valor;
-    }
-
-    public void setValor(String valor) {
+    public void setValor(double valor) {
         this.valor = valor;
+    }
+
+    public double getTaxa() {
+        return taxa;
+    }
+
+    public void setTaxa(double taxa) {
+        this.taxa = taxa;
+    }
+
+    public Loan getLoan() {
+        return loan;
+    }
+
+    public void setLoan(Loan loan) {
+        this.loan = loan;
     }
 }
