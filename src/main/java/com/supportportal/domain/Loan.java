@@ -3,6 +3,7 @@ package com.supportportal.domain;
 import javax.persistence.*;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
+import java.util.Date;
 
 @Entity
 public class Loan {
@@ -10,35 +11,29 @@ public class Loan {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private String loanId;
-
-    @ManyToOne
-    private Payment payment;
-
     @NotNull
     @Min(1)
     private String loanAmount;
-
-    @NotNull
-    @Min(1)
-    private String propertyValue;
-
-    private String loanStatus;
-
-    @NotNull
-    @Min(value = 100000000, message = "Bad Value provided for SSN ")
     private String nuit;
+    private String loanStatus;
+    @NotNull
+    private Date createdOn;
+    @ManyToOne
+    private User user;
+    private String email;
 
     public Loan() {
     }
 
-    public Loan(Long id, String loanId, String loanAmount, String propertyValue, String loanStatus, String nuit) {
+    public Loan(Long id, String loanId, String loanAmount, String nuit, String loanStatus, Date createdOn, User user, String email) {
         this.id = id;
         this.loanId = loanId;
-        //this.payment = payment;
         this.loanAmount = loanAmount;
-        this.propertyValue = propertyValue;
-        this.loanStatus = loanStatus;
         this.nuit = nuit;
+        this.loanStatus = loanStatus;
+        this.createdOn = createdOn;
+        this.user = user;
+        this.email = email;
     }
 
     /**
@@ -60,14 +55,6 @@ public class Loan {
         this.loanId = loanId;
     }
 
-    public Payment getPayment() {
-        return payment;
-    }
-
-    public void setPayment(Payment payment) {
-        this.payment = payment;
-    }
-
     public String getLoanAmount() {
         return loanAmount;
     }
@@ -76,12 +63,12 @@ public class Loan {
         this.loanAmount = loanAmount;
     }
 
-    public String getPropertyValue() {
-        return propertyValue;
+    public String getNuit() {
+        return nuit;
     }
 
-    public void setPropertyValue(String propertyValue) {
-        this.propertyValue = propertyValue;
+    public void setNuit(String nuit) {
+        this.nuit = nuit;
     }
 
     public String getLoanStatus() {
@@ -92,15 +79,27 @@ public class Loan {
         this.loanStatus = loanStatus;
     }
 
-    public String getNuit() {
-        return nuit;
+    public Date getCreatedOn() {
+        return createdOn;
     }
 
-    public void setNuit(String nuit) {
-        this.nuit = nuit;
+    public void setCreatedOn(Date createdOn) {
+        this.createdOn = createdOn;
     }
-    //@Override
-    //public String toString() {
-        //return "Loan Amount: " + this.loanAmount + " for Property Value: " + this.propertyValue;
-    //}
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
 }

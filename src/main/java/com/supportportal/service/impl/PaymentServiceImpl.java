@@ -24,22 +24,22 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public Payment register(String username, double taxa, double valor) throws PaymentNotFoundException, PaymentExistException {
+    public Payment register(double taxa, double valor) throws PaymentNotFoundException, PaymentExistException {
         Payment payment = new Payment();
         payment.setPaymentId(generatedPaymentId());
-        payment.setUsername(username);
         payment.setTaxa(taxa);
         payment.setValor(valor);
+        paymentRepository.save(payment);
         return payment;
     }
 
     @Override
-    public Payment addNewPayment(String username, double taxa, double valor) throws PaymentNotFoundException, PaymentExistException, IOException {
+    public Payment addNewPayment(double taxa, double valor) {
         Payment payment = new Payment();
         payment.setPaymentId(generatedPaymentId());
-        payment.setUsername(username);
         payment.setTaxa(taxa);
         payment.setValor(valor);
+        paymentRepository.save(payment);
         return payment;
     }
 

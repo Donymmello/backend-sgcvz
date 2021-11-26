@@ -9,21 +9,20 @@ public class Payment implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private String paymentId;
-    private String username;
-    @ManyToOne
-    private Loan loan;
     private double valor;
     private double taxa;
+    @ManyToOne
+    private User user;
 
     public Payment() {
     }
 
-    public Payment(Long id, String paymentId, String username, double valor, double taxa) {
+    public Payment(Long id, String paymentId, double valor, double taxa, User user) {
         this.id = id;
         this.paymentId = paymentId;
-        this.username = username;
         this.valor = valor;
         this.taxa = taxa;
+        this.user = user;
     }
 
     public Long getId() {
@@ -42,14 +41,6 @@ public class Payment implements Serializable {
         this.paymentId = paymentId;
     }
 
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
     public double getValor() {
         return valor + taxa;
     }
@@ -66,11 +57,11 @@ public class Payment implements Serializable {
         this.taxa = taxa;
     }
 
-    public Loan getLoan() {
-        return loan;
+    public User getUser() {
+        return user;
     }
 
-    public void setLoan(Loan loan) {
-        this.loan = loan;
+    public void setUser(User user) {
+        this.user = user;
     }
 }

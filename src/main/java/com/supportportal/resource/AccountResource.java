@@ -26,27 +26,20 @@ public class AccountResource extends ExceptionHandling {
 
     @PostMapping("/register")
     public ResponseEntity<Account> register(@RequestBody Account account) throws AccountExistException, AccountNotFoundException, IOException {
-        Account newAccount = accountService.register(account.getType(), account.getBalance(), account.getOwner());
+        Account newAccount = accountService.register(account.getType(), account.getBalance());
         return  new ResponseEntity<>(newAccount, OK);
     }
 
     @PostMapping("/add")
     public ResponseEntity<Account> addNewAccount(@RequestParam("type") String type,
-                                                 @RequestParam("balance") double balance,
-                                                 @RequestParam("owner") User owner) throws AccountNotFoundException, AccountExistException, IOException {
-        Account newAccount = accountService.addNewAccount(type, balance, owner);
+                                                 @RequestParam("balance") double balance) throws AccountNotFoundException, AccountExistException, IOException {
+        Account newAccount = accountService.addNewAccount(type, balance);
         return new ResponseEntity<>(newAccount, OK);
     }
 
     @GetMapping("/find/{id}")
     public ResponseEntity<Account> getAccount(@PathVariable("id") long id) {
         Account account = accountService.findAccountById(id);
-        return new ResponseEntity<>(account, OK);
-    }
-
-    @GetMapping("/find/{owner}")
-    public ResponseEntity<Account> getAccount(@PathVariable("owner") String owner) {
-        Account account = accountService.findAccountByOwner(owner);
         return new ResponseEntity<>(account, OK);
     }
 }

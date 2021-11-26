@@ -24,23 +24,21 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public Account register(String type, double balance, User owner) throws AccountNotFoundException, AccountExistException {
+    public Account register(String type, double balance) throws AccountNotFoundException, AccountExistException {
         Account account = new Account();
         account.setAccountId(generateAccountId());
         account.setType(type);
         account.setBalance(balance);
-        account.setOwner(owner);
         accountRepository.save(account);
         return account;
     }
 
     @Override
-    public Account addNewAccount(String type, double balance, User owner) throws AccountNotFoundException, AccountExistException, IOException {
+    public Account addNewAccount(String type, double balance)  {
         Account account = new Account();
         account.setAccountId(generateAccountId());
         account.setType(type);
         account.setBalance(balance);
-        account.setOwner(owner);
         accountRepository.save(account);
         return account;
     }
@@ -52,11 +50,6 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Account findAccountById(long id) {
         return accountRepository.findAccountByid(id);
-    }
-
-    @Override
-    public Account findAccountByOwner(String owner) {
-        return accountRepository.findAccountByOwner(owner);
     }
 
 }

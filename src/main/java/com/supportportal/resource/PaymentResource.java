@@ -13,7 +13,7 @@ import java.util.List;
 
 import static org.springframework.http.HttpStatus.OK;
 
-@ResponseBody
+//@ResponseBody
 @RestController
 @RequestMapping(value = "/payment")
 @CrossOrigin("http://localhost:4200")
@@ -28,15 +28,14 @@ public class PaymentResource {
 
     @PostMapping("/register")
     public ResponseEntity<Payment> register(@RequestBody Payment payment) throws PaymentNotFoundException, PaymentExistException {
-        Payment newPayment = paymentService.register(payment.getUsername(), payment.getTaxa(), payment.getValor());
+        Payment newPayment = paymentService.register(payment.getTaxa(), payment.getValor());
         return new ResponseEntity<>(newPayment, OK);
     }
 
     @PostMapping("/add")
-    public ResponseEntity<Payment> addNewPayment(@RequestParam("username") String username,
-                                                 @RequestParam("taxa") double taxa,
+    public ResponseEntity<Payment> addNewPayment(@RequestParam("taxa") double taxa,
                                                  @RequestParam("valor") double valor) throws PaymentNotFoundException, PaymentExistException, IOException {
-        Payment newPayment = paymentService.addNewPayment(username, valor, taxa );
+        Payment newPayment = paymentService.addNewPayment(valor, taxa );
         return new ResponseEntity<>(newPayment, OK);
     }
 

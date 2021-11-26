@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.mail.MessagingException;
+
 import static org.springframework.http.HttpStatus.OK;
 
 @RestController
@@ -24,7 +26,7 @@ public class LoanResource {
 
     @PostMapping("/create")
     public ResponseEntity<Loan> create(@RequestBody Loan loan) {
-        Loan newLoan = loanService.create(loan.getLoanAmount(), loan.getPropertyValue(), loan.getLoanStatus(), loan.getNuit());
+        Loan newLoan = loanService.create(loan.getEmail(), loan.getLoanAmount(),loan.getNuit(), loan.getLoanStatus(), loan.getCreatedOn());
         return new ResponseEntity<>(newLoan, OK);
     }
 

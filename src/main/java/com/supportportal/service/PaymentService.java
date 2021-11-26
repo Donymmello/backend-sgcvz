@@ -9,11 +9,11 @@ import java.util.List;
 
 public interface PaymentService {
 
-    Payment register(String username, double taxa, double valor) throws PaymentNotFoundException, PaymentExistException;
+    Payment register(double taxa, double valor) throws PaymentNotFoundException, PaymentExistException;
 
     List<Payment> getPayments();
 
     Payment findPaymentById(long id);
 
-    Payment addNewPayment(String username, double taxa, double valor) throws PaymentNotFoundException, PaymentExistException, IOException;
+    Payment addNewPayment(double taxa, double valor) throws PaymentNotFoundException, PaymentExistException, IOException;
 }

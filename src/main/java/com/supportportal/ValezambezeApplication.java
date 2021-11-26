@@ -15,10 +15,10 @@ import java.util.Collections;
 import static com.supportportal.constant.FileConstant.USER_FOLDER;
 
 @SpringBootApplication
-public class SupportportalApplication {
+public class ValezambezeApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(SupportportalApplication.class, args);
+		SpringApplication.run(ValezambezeApplication.class, args);
 		new File(USER_FOLDER).mkdirs();
 	}
 	@Bean

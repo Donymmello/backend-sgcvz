@@ -19,6 +19,9 @@ public class Account implements Serializable {
     private User owner;
 
     public Account() {
+    }
+
+    public Account(long id, String accountId, String type, double balance, User owner) {
         this.id = id;
         this.accountId = accountId;
         this.type = type;
