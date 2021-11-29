@@ -73,8 +73,8 @@ public class ExceptionHandling implements ErrorController {
     public ResponseEntity<HttpResponse> paymentExistException(PaymentExistException exception) {
         return createHttpResponse(BAD_REQUEST, exception.getMessage());
     }
-    @ExceptionHandler(EmprestimoExistException.class)
-    public ResponseEntity<HttpResponse> emprestimoExistException(EmprestimoExistException exception) {
+    @ExceptionHandler(LoanExistException.class)
+    public ResponseEntity<HttpResponse> emprestimoExistException(LoanExistException exception) {
         return createHttpResponse(BAD_REQUEST, exception.getMessage());
     }
 
@@ -96,8 +96,8 @@ public class ExceptionHandling implements ErrorController {
     public ResponseEntity<HttpResponse> accountNotFoundException(AccountNotFoundException exception) {
         return createHttpResponse(BAD_REQUEST, exception.getMessage());
     }
-    @ExceptionHandler(EmprestimoNotFoundException.class)
-    public ResponseEntity<HttpResponse> emprestimoNotFoundException(EmprestimoNotFoundException exception) {
+    @ExceptionHandler(LoanNotFoundException.class)
+    public ResponseEntity<HttpResponse> emprestimoNotFoundException(LoanNotFoundException exception) {
         return createHttpResponse(BAD_REQUEST, exception.getMessage());
     }
 

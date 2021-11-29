@@ -1,10 +1,12 @@
 package com.supportportal.resource;
 
+import com.supportportal.domain.HttpResponse;
 import com.supportportal.domain.Payment;
 import com.supportportal.exception.domain.PaymentExistException;
 import com.supportportal.exception.domain.PaymentNotFoundException;
 import com.supportportal.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -48,5 +50,9 @@ public class PaymentResource {
     public ResponseEntity<Payment> getPayment(@PathVariable("id") long id) {
         Payment payment = paymentService.findPaymentById(id);
         return new ResponseEntity<>(payment, OK);
+    }
+    private ResponseEntity<HttpResponse> response(HttpStatus httpStatus, String message) {
+        return new ResponseEntity<>(new HttpResponse(httpStatus.value(), httpStatus, httpStatus.getReasonPhrase().toUpperCase(),
+                message), httpStatus);
     }
 }

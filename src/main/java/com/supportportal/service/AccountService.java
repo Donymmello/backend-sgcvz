@@ -5,6 +5,7 @@ import com.supportportal.exception.domain.AccountExistException;
 import com.supportportal.exception.domain.AccountNotFoundException;
 
 import java.io.IOException;
+import java.util.List;
 
 public interface AccountService {
 
@@ -15,5 +16,6 @@ public interface AccountService {
     Account findAccountById(long id);
 
 
+    List<Account> getAccounts();
 }
 

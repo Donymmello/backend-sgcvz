@@ -1,16 +1,19 @@
 package com.supportportal.resource;
 
 import com.supportportal.domain.Account;
+import com.supportportal.domain.HttpResponse;
 import com.supportportal.domain.User;
 import com.supportportal.exception.ExceptionHandling;
 import com.supportportal.exception.domain.AccountExistException;
 import com.supportportal.exception.domain.AccountNotFoundException;
 import com.supportportal.service.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
 
 import static org.springframework.http.HttpStatus.OK;
 
@@ -36,11 +39,19 @@ public class AccountResource extends ExceptionHandling {
         Account newAccount = accountService.addNewAccount(type, balance);
         return new ResponseEntity<>(newAccount, OK);
     }
-
     @GetMapping("/find/{id}")
     public ResponseEntity<Account> getAccount(@PathVariable("id") long id) {
         Account account = accountService.findAccountById(id);
         return new ResponseEntity<>(account, OK);
+    }
+    @GetMapping("/list")
+    public ResponseEntity<List<Account>> getAllAccounts() {
+        List<Account> accounts = accountService.getAccounts();
+        return new ResponseEntity<>(accounts, OK);
+    }
+    private ResponseEntity<HttpResponse> response(HttpStatus httpStatus, String message) {
+        return new ResponseEntity<>(new HttpResponse(httpStatus.value(), httpStatus, httpStatus.getReasonPhrase().toUpperCase(),
+                message), httpStatus);
     }
 }
 

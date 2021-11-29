@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.io.IOException;
+import java.util.List;
 
 @Service
 @Transactional
@@ -50,6 +51,11 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Account findAccountById(long id) {
         return accountRepository.findAccountByid(id);
+    }
+
+    @Override
+    public List<Account> getAccounts() {
+        return accountRepository.findAll();
     }
 
 }

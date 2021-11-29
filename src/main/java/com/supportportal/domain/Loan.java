@@ -20,20 +20,20 @@ public class Loan {
     private Date createdOn;
     @ManyToOne
     private User user;
-    private String email;
+    @ManyToOne
+    private User email;
 
     public Loan() {
     }
 
-    public Loan(Long id, String loanId, String loanAmount, String nuit, String loanStatus, Date createdOn, User user, String email) {
+    public Loan(Long id, String loanId, String loanAmount, String nuit, String loanStatus, Date createdOn, User user, User email) {
         this.id = id;
         this.loanId = loanId;
         this.loanAmount = loanAmount;
         this.nuit = nuit;
         this.loanStatus = loanStatus;
         this.createdOn = createdOn;
-        this.user = user;
-        this.email = email;
+
     }
 
     /**
@@ -95,11 +95,11 @@ public class Loan {
         this.user = user;
     }
 
-    public String getEmail() {
+    public User getEmail() {
         return email;
     }
 
-    public void setEmail(String email) {
+    public void setEmail(User email) {
         this.email = email;
     }
 }
