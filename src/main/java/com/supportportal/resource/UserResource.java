@@ -1,10 +1,10 @@
 package com.supportportal.resource;
 
-import com.supportportal.domain.HttpResponse;
-import com.supportportal.domain.User;
-import com.supportportal.domain.UserPrincipal;
+
+import com.supportportal.domain.*;
 import com.supportportal.exception.ExceptionHandling;
 import com.supportportal.exception.domain.*;
+import com.supportportal.repository.AccountDao;
 import com.supportportal.service.UserService;
 import com.supportportal.utility.JWTTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +39,7 @@ public class UserResource extends ExceptionHandling {
     public static final String USER_DELETED_SUCCESSFULLY = "User deleted successfully";
     private AuthenticationManager authenticationManager;
     private UserService userService;
+
     private JWTTokenProvider jwtTokenProvider;
 
     @Autowired
@@ -46,8 +47,9 @@ public class UserResource extends ExceptionHandling {
         this.authenticationManager = authenticationManager;
         this.userService = userService;
         this.jwtTokenProvider = jwtTokenProvider;
-
     }
+    @Autowired
+    private AccountDao accountDao;
 
     @PostMapping("/login")
     public ResponseEntity<User> login(@RequestBody User user) {
@@ -60,7 +62,7 @@ public class UserResource extends ExceptionHandling {
 
     @PostMapping("/register")
     public ResponseEntity<User> register(@RequestBody User user) throws UserNotFoundException, UsernameExistException, EmailExistException, MessagingException {
-        User newUser = userService.register(user.getNome(), user.getApelido(), user.getNascimento(), user.getMorada(), user.getB_i(), user.getNuit(), user.getTipo(), user.getUsername(), user.getEmail());
+        User newUser = userService.register(user.getNome(), user.getApelido(), user.getNascimento(), user.getMorada(), user.getB_i(), user.getNuit(), user.getUsername(), user.getEmail());
         return new ResponseEntity<>(newUser, OK);
     }
 
@@ -71,14 +73,13 @@ public class UserResource extends ExceptionHandling {
                                            @RequestParam("morada") String morada,
                                            @RequestParam("b_i") String b_i,
                                            @RequestParam("nuit") String nuit,
-                                           @RequestParam("tipo") String tipo,
                                            @RequestParam("username") String username,
                                            @RequestParam("email") String email,
                                            @RequestParam("role") String role,
                                            @RequestParam("isActive") String isActive,
                                            @RequestParam("isNonLocked") String isNonLocked,
                                            @RequestParam(value = "profileImage", required = false) MultipartFile profileImage) throws UserNotFoundException, UsernameExistException, EmailExistException, IOException, NotAnImageFileException {
-        User newUser = userService.addNewUser(nome, apelido, nascimento, morada, b_i, nuit, tipo, username, email, role, Boolean.parseBoolean(isNonLocked), Boolean.parseBoolean(isActive), profileImage);
+        User newUser = userService.addNewUser(nome, apelido, nascimento, morada, b_i, nuit, username, email, role, Boolean.parseBoolean(isNonLocked), Boolean.parseBoolean(isActive), profileImage);
         return new ResponseEntity<>(newUser, OK);
     }
 
@@ -90,17 +91,16 @@ public class UserResource extends ExceptionHandling {
                                        @RequestParam("morada") String morada,
                                        @RequestParam("b_i") String b_i,
                                        @RequestParam("nuit") String nuit,
-                                       @RequestParam("tipo") String tipo,
                                        @RequestParam("username") String username,
                                        @RequestParam("email") String email,
                                        @RequestParam("role") String role,
                                        @RequestParam("isActive") String isActive,
                                        @RequestParam("isNonLocked") String isNonLocked,
                                        @RequestParam(value = "profileImage", required = false) MultipartFile profileImage) throws UserNotFoundException, UsernameExistException, EmailExistException, IOException, NotAnImageFileException {
-        User updatedUser = userService.updateUser(currentUsername, nome, apelido, nascimento, morada, b_i, nuit, tipo, username,email, role, Boolean.parseBoolean(isNonLocked), Boolean.parseBoolean(isActive), profileImage);
+        User updatedUser = userService.updateUser(currentUsername, nome, apelido, nascimento, morada, b_i, nuit, username, email, role, Boolean.parseBoolean(isNonLocked), Boolean.parseBoolean(isActive), profileImage);
         return new ResponseEntity<>(updatedUser, OK);
     }
-    
+
     @GetMapping("/find/{username}")
     public ResponseEntity<User> getUser(@PathVariable("username") String username) {
         User user = userService.findUserByUsername(username);
@@ -163,5 +163,68 @@ public class UserResource extends ExceptionHandling {
 
     private void authenticate(String username, String password) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+    }
+    @GetMapping("/checkingAccount/{code}")
+    List<Operation> checkingAccount(@PathVariable int code) {
+        return userService.checkingAccount(code);
+    }
+
+    @PostMapping("/depositOperation/{code}")
+    void depositOperation(@PathVariable int code, @RequestBody Operation operation) {
+        userService.depositOperation(code, operation.getAmount());
+    }
+
+    @PostMapping("/addStandingAccount/{id}")
+    StandingAccount addStandingAccount(@RequestBody StandingAccount standingAccount, @PathVariable long id) {
+        return userService.addStandingAccount(standingAccount, id);
+    }
+
+    @PostMapping("/addSavingsAccount/{id}")
+    SavingsAccount addSavingsAccount(@RequestBody SavingsAccount savingsAccount, @PathVariable long id) {
+        return userService.addSavingsAccount(savingsAccount, id);
+    }
+
+    @PostMapping("/debitOperation/{code}")
+    void debitOperation(@PathVariable int code, @RequestBody Operation operation) {
+        userService.debitOperation(code, operation.getAmount());
+    }
+
+    @GetMapping("/findWithdraws/{id}")
+    public List<Operation> findWithdraws(@PathVariable int id) {
+        return userService.findWithdraws(id);
+    }
+
+    @GetMapping("/findCredits/{id}")
+    List<Operation> findCredits(@PathVariable int id) {
+        return userService.findCredits(id);
+    }
+
+    @PostMapping("/transfer/{code1}/{code2}")
+    Operation transfer(@PathVariable int code1, @PathVariable int code2, @RequestBody Operation operation) {
+        return userService.transfer(code1, code2, operation);
+    }
+
+    @GetMapping("/findStandingAccountAccounts/{id}")
+    List<Account> findStandingAccountAccounts(@PathVariable long id) {
+        return userService.findStandingAccountAccounts(id);
+    }
+
+    @GetMapping("/findSavingsAccountAccounts/{id}")
+    List<Account> findSavingsAccountAccounts(@PathVariable long id) {
+        return userService.findSavingsAccountAccounts(id);
+    }
+
+    @GetMapping("/findAccountById/{id}")
+    Account findAccountById(@PathVariable int id) {
+        return accountDao.findById(id).orElse(null);
+    }
+
+    @PostMapping("/editStandingAccount/{id}")
+    StandingAccount editStandingAccount(@RequestBody StandingAccount standingAccount, @PathVariable int id) {
+        return userService.editStandingAccount(standingAccount, id);
+    }
+    @PostMapping("/editSavingsAccount/{id}")
+    SavingsAccount editSavingsAccount(@RequestBody SavingsAccount savingsAccount, @PathVariable int id) {
+        return userService.editSavingsAccount(savingsAccount, id);
     }
 }

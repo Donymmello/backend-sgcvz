@@ -3,6 +3,8 @@ package com.supportportal.repository;
 import com.supportportal.domain.Account;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface AccountRepository extends JpaRepository<Account, Long> {
-    Account findAccountByid(Long id);
+import java.util.Optional;
+
+public interface AccountDao extends JpaRepository<Account, Integer> {
+	Optional<Account> findByCode(String code);
 }

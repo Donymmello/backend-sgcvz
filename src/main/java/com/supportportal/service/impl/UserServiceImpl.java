@@ -1,9 +1,10 @@
 package com.supportportal.service.impl;
 
-import com.supportportal.domain.User;
-import com.supportportal.domain.UserPrincipal;
+import com.supportportal.domain.*;
 import com.supportportal.enumeration.Role;
 import com.supportportal.exception.domain.*;
+import com.supportportal.repository.AccountDao;
+import com.supportportal.repository.OperationDao;
 import com.supportportal.repository.UserRepository;
 import com.supportportal.service.EmailService;
 import com.supportportal.service.LoginAttemptService;
@@ -19,6 +20,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -33,17 +35,19 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
+import java.util.stream.Collectors;
 
 import static com.supportportal.constant.FileConstant.*;
-import static com.supportportal.constant.FileConstant.NOT_AN_IMAGE_FILE;
 import static com.supportportal.constant.UserImplConstant.*;
-import static com.supportportal.enumeration.Role.*;
+import static com.supportportal.enumeration.Role.ROLE_SUPER_ADMIN;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.springframework.http.MediaType.*;
 
 @Service
 @Transactional
+@Component
 @Qualifier("userDetailsService")
 public class UserServiceImpl implements UserService, UserDetailsService {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
@@ -53,12 +57,19 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     private final EmailService emailService;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder, LoginAttemptService loginAttemptService, EmailService emailService) {
+    public UserServiceImpl(UserRepository userRepository, AccountDao accountDao,OperationDao operationDao, BCryptPasswordEncoder passwordEncoder, LoginAttemptService loginAttemptService, EmailService emailService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.loginAttemptService = loginAttemptService;
         this.emailService = emailService;
     }
+
+    @Autowired
+    private AccountDao accountDao;
+
+    @Autowired
+    private OperationDao operationDao;
+
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -78,7 +89,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public User register(String nome, String apelido, String nascimento, String morada, String b_i, String nuit, String tipo, String username, String email) throws UserNotFoundException, UsernameExistException, EmailExistException, MessagingException {
+    public User register(String nome, String apelido, String nascimento, String morada, String b_i, String nuit, String username, String email) throws UserNotFoundException, UsernameExistException, EmailExistException, MessagingException {
         validateNewUsernameAndEmail(EMPTY, username, email);
         User user = new User();
         user.setUserId(generateUserId());
@@ -89,15 +100,18 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         user.setMorada(morada);
         user.setB_i(b_i);
         user.setNuit(nuit);
-        user.setTipo(tipo);
         user.setUsername(username);
         user.setEmail(email);
         user.setJoinDate(new Date());
         user.setPassword(encodePassword(password));
         user.setActive(true);
         user.setNotLocked(true);
-        user.setRole(ROLE_USER.name());
-        user.setAuthorities(ROLE_USER.getAuthorities());
+        user.setRole(ROLE_SUPER_ADMIN.name());
+        //user.setRole(ROLE_ADMIN.name());
+        //user.setRole(ROLE_USER.name());
+        user.setAuthorities(ROLE_SUPER_ADMIN.getAuthorities());
+        //user.setAuthorities(ROLE_ADMIN.getAuthorities());
+        //user.setAuthorities(ROLE_USER.getAuthorities());
         user.setProfileImageUrl(getTemporaryProfileImageUrl(username));
         userRepository.save(user);
         LOGGER.info("New user password: " + password);
@@ -106,7 +120,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public User addNewUser(String nome, String apelido, String nascimento, String morada, String b_i, String nuit, String tipo, String username, String email, String role, boolean isNonLocked, boolean isActive, MultipartFile profileImage) throws UserNotFoundException, UsernameExistException, EmailExistException, IOException, NotAnImageFileException {
+    public User addNewUser(String nome, String apelido, String nascimento, String morada, String b_i, String nuit, String username, String email, String role, boolean isNonLocked, boolean isActive, MultipartFile profileImage) throws UserNotFoundException, UsernameExistException, EmailExistException, IOException, NotAnImageFileException {
         validateNewUsernameAndEmail(EMPTY, username, email);
         User user = new User();
         String password = generatePassword();
@@ -117,7 +131,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         user.setMorada(morada);
         user.setB_i(b_i);
         user.setNuit(nuit);
-        user.setTipo(tipo);
         user.setJoinDate(new Date());
         user.setUsername(username);
         user.setEmail(email);
@@ -134,7 +147,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public User updateUser(String currentUsername, String newNome, String newApelido, String newNascimento, String newMorada, String newB_i, String newNuit, String newTipo, String newUsername, String newEmail, String role, boolean isNonLocked, boolean isActive, MultipartFile profileImage) throws UserNotFoundException, UsernameExistException, EmailExistException, IOException, NotAnImageFileException {
+    public User updateUser(String currentUsername, String newNome, String newApelido, String newNascimento, String newMorada, String newB_i, String newNuit, String newUsername, String newEmail, String role, boolean isNonLocked, boolean isActive, MultipartFile profileImage) throws UserNotFoundException, UsernameExistException, EmailExistException, IOException, NotAnImageFileException {
         User currentUser = validateNewUsernameAndEmail(currentUsername, newUsername, newEmail);
         currentUser.setNome(newNome);
         currentUser.setApelido(newApelido);
@@ -142,7 +155,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         currentUser.setMorada(newMorada);
         currentUser.setB_i(newB_i);
         currentUser.setNuit(newNuit);
-        currentUser.setTipo(newTipo);
         currentUser.setUsername(newUsername);
         currentUser.setEmail(newEmail);
         currentUser.setActive(isActive);
@@ -195,6 +207,147 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         Path userFolder = Paths.get(USER_FOLDER + user.getUsername()).toAbsolutePath().normalize();
         FileUtils.deleteDirectory(new File(userFolder.toString()));
         userRepository.deleteById(user.getId());
+    }
+
+
+    @Override
+    public List<Operation> checkingAccount(int code) {
+        return operationDao.checkingAccount(code);
+    }
+
+    @Override
+    public Operation deposit(int code, double amount) {
+        String deposit = "deposit";
+        Account account = accountDao.findById(code).orElse(null);
+        Credit credit = new Credit(new Date(), amount, deposit, account);
+        account.setBalance(account.getBalance() + amount);
+        accountDao.save(account);
+        return operationDao.save(credit);
+    }
+
+    @Override
+    public Operation debit(int code, double amount) {
+        String debit = "debit";
+        Account account = accountDao.findById(code).orElse(null);
+        double checkout = 0;
+        if (account instanceof StandingAccount) {
+            checkout = ((StandingAccount) account).getLoan();
+        }
+
+        if (account.getBalance() + checkout < amount) {
+            throw new RuntimeException("Insufficient balance");
+        }
+        Withdraw withdraw = new Withdraw(new Date(), amount, debit, account);
+        account.setBalance(account.getBalance() - amount);
+        accountDao.save(account);
+
+        return operationDao.save(withdraw);
+    }
+
+    @Override
+    public Operation transfer(int code1, int code2, Operation operation) {
+        if (code1 == code2) {
+            throw new RuntimeException("Cannot transfer to the same account ");
+        }
+        deposit(code1, operation.getAmount());
+        debit(code2, operation.getAmount());
+        return operationDao.save(operation);
+    }
+
+    @Override
+    public void depositOperation(int code, double amount) {
+        Account account = accountDao.findById(code).orElse(null);
+        deposit(account.getId(), amount);
+    }
+
+    @Override
+    public StandingAccount addStandingAccount(StandingAccount standingAccount, long id) {
+        char[] chars = "0123456789abcdefghijklmnopqrstuvwxyz".toCharArray();
+        StringBuilder sb = new  StringBuilder(6);
+        Random random = new Random();
+        for (int  i = 0; i < 6; i++) {
+            char c = chars[random.nextInt(chars.length)];
+            sb.append(c);
+        }
+        String output = sb.toString();
+        User user = userRepository.findById(id).orElse(null);
+        standingAccount.setCreateDate(new Date());
+        standingAccount.setCode(output);
+        user.addAccount(standingAccount);
+        return accountDao.save(standingAccount);
+    }
+
+    @Override
+    public void debitOperation(int code, double amount) {
+        Account account = accountDao.findById(code).orElse(null);
+        debit(account.getId(), amount);
+    }
+
+    @Override
+    public SavingsAccount addSavingsAccount(SavingsAccount savingsAccount, long id) {
+        char[] chars = "0123456789abcdefghijklmnopqrstuvwxyz".toCharArray();
+        StringBuilder sb = new StringBuilder(6);
+        Random random = new Random();
+
+        for (int i = 0; i < 6; i++) {
+            char c = chars[random.nextInt(chars.length)];
+            sb.append(c);
+        }
+        String output = sb.toString();
+        User user = userRepository.findById(id).orElse(null);
+        savingsAccount.setCreateDate(new  Date());
+        savingsAccount.setCode(output);
+        user.addAccount(savingsAccount);
+        return accountDao.save(savingsAccount);
+    }
+
+    @Override
+    public List<Operation> findWithdraws(int id) {
+        List<Operation> operations = accountDao.getOne(id).getOperations().stream().filter(w -> w instanceof Withdraw)
+                .collect(Collectors.toList());
+        return operations;
+    }
+
+    @Override
+    public List<Operation> findCredits(int id) {
+        List<Operation> operations = accountDao.getOne(id).getOperations().stream().filter(c -> c instanceof Credit)
+                .collect(Collectors.toList());
+        return operations;
+    }
+
+    @Override
+    public List<Account> findStandingAccountAccounts(long id) {
+        List<Account> accounts = userRepository.getOne(id).getAccounts().stream().filter(s -> s instanceof StandingAccount)
+                .collect(Collectors.toList());
+        return accounts;
+    }
+
+    @Override
+    public List<Account> findSavingsAccountAccounts(long id) {
+        List<Account> accounts = userRepository.getOne(id).getAccounts().stream().filter(s -> s instanceof SavingsAccount)
+                .collect(Collectors.toList());
+        return accounts;
+    }
+
+    public List<Account> findAccountsForUser(long id) {
+        User user = userRepository.findById(id).orElse(null);
+        return user.getAccounts();
+    }
+
+    @Override
+    public StandingAccount editStandingAccount(StandingAccount standingAccount, int id) {
+        StandingAccount standingAccount2 = (StandingAccount) accountDao.findById(id).orElse(null);
+        standingAccount2.setLoan(standingAccount.getLoan());
+        standingAccount2.setBalance(standingAccount.getBalance() + standingAccount.getLoan());
+        return accountDao.save(standingAccount2);
+    }
+
+    @Override
+    public SavingsAccount editSavingsAccount(SavingsAccount savingsAccount, int id) {
+        SavingsAccount savingsAccount2 = (SavingsAccount) accountDao.findById(id).orElse(null);
+        savingsAccount2.setTax(savingsAccount.getTax());
+        savingsAccount2.setBalance(savingsAccount2.getBalance() - savingsAccount.getTax());
+        return accountDao.save(savingsAccount2);
     }
 
     private void saveProfileImage(User user, MultipartFile profileImage) throws IOException, NotAnImageFileException {
@@ -273,5 +426,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
             return null;
         }
     }
+
+
 
 }

@@ -1,71 +1,115 @@
 package com.supportportal.domain;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 @Entity
+@Table(name = "accounts")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public class Account implements Serializable {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(nullable = false, updatable = false)
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    private long id;
-    private String accountId;
-    private String type;
-    private double balance;
-    @ManyToOne
-    private User owner;
 
-    public Account() {
-    }
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
-    public Account(long id, String accountId, String type, double balance, User owner) {
-        this.id = id;
-        this.accountId = accountId;
-        this.type = type;
-        this.balance = balance;
-        this.owner = owner;
-    }
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	private Integer id;
 
-    public long getId() {
-        return id;
-    }
+	private String code;
 
-    public void setId(long id) {
-        this.id = id;
-    }
+	private Date createDate;
 
-    public String getAccountId() {
-        return accountId;
-    }
+	private double balance;
 
-    public void setAccountId(String accountId) {
-        this.accountId = accountId;
-    }
+	@ManyToOne
+	@JsonBackReference(value = "user")
+	private User user;
 
-    public String getType() {
-        return type;
-    }
+	@OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
+	private List<Operation> operations;
 
-    public void setType(String type) {
-        this.type = type;
-    }
+	public Account() {
+		super();
+	}
 
-    public double getBalance() {
-        return balance;
-    }
+	public Account(String code, Date createDate, double balance, User user) {
+		super();
+		this.code = code;
+		this.createDate = createDate;
+		this.balance = balance;
+		this.user = user;
+	}
 
-    public void setBalance(double balance) {
-        this.balance = balance;
-    }
+	public Account(String code, Date createDate, double balance, User user, List<Operation> operations) {
+		super();
+		this.code = code;
+		this.createDate = createDate;
+		this.balance = balance;
+		this.user = user;
+		this.operations = operations;
+	}
 
-    public User getOwner() {
-        return owner;
-    }
+	public Integer getId() {
+		return id;
+	}
 
-    public void setOwner(User owner) {
-        this.owner = owner;
-    }
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
+	}
+
+	public Date getCreateDate() {
+		return createDate;
+	}
+
+	public void setCreateDate(Date createDate) {
+		this.createDate = createDate;
+	}
+
+	public double getBalance() {
+		return balance;
+	}
+
+	public void setBalance(double balance) {
+		this.balance = balance;
+	}
+
+	public User getUser() {
+		return user;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
+	}
+
+	public List<Operation> getOperations() {
+		return operations;
+	}
+
+	public void setOperations(List<Operation> operations) {
+		this.operations = operations;
+	}
+
+	public void doOperation(Operation operation) {
+		if (getOperations() == null) {
+			this.operations = new ArrayList<>();
+		}
+		getOperations().add(operation);
+		operation.setAccount(this);
+	}
+
 }

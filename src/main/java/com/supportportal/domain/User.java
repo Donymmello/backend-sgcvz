@@ -4,10 +4,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 @Entity
+@Table(name = "users")
 public class User implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -21,9 +23,8 @@ public class User implements Serializable {
     private String morada;
     private String b_i;
     private String nuit;
-    private String tipo;
     private String username;
-   // @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
     private String email;
     private String profileImageUrl;
@@ -34,18 +35,16 @@ public class User implements Serializable {
     private String[] authorities;
     private boolean isActive;
     private boolean isNotLocked;
-    @OneToMany
-    private List<Loan> loanList;
-    @OneToMany
-    private List<Account> accountList;
-    @OneToMany
-    private List<Payment> paymentList;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Account> accounts;
 
     public User() {
+        super();
     }
 
-    public User(Long id, String userId, String nome, String apelido, String nascimento, String morada, String b_i, String nuit, String tipo, String username, String password, String email, String profileImageUrl, Date lastLoginDate, Date lastLoginDateDisplay, Date joinDate, String role, String[] authorities, boolean isActive, boolean isNotLocked) {
+    public User(Long id, String userId, String nome, String apelido, String nascimento, String morada, String b_i, String nuit, String username, String password, String email, String profileImageUrl, Date lastLoginDate, Date lastLoginDateDisplay, Date joinDate, String role, String[] authorities, boolean isActive, boolean isNotLocked, List<Account> accounts) {
+        super();
         this.id = id;
         this.userId = userId;
         this.nome = nome;
@@ -54,7 +53,6 @@ public class User implements Serializable {
         this.morada = morada;
         this.b_i = b_i;
         this.nuit = nuit;
-        this.tipo = tipo;
         this.username = username;
         this.password = password;
         this.email = email;
@@ -66,6 +64,7 @@ public class User implements Serializable {
         this.authorities = authorities;
         this.isActive = isActive;
         this.isNotLocked = isNotLocked;
+        this.accounts = accounts;
     }
 
     public Long getId() {
@@ -130,14 +129,6 @@ public class User implements Serializable {
 
     public void setNuit(String nuit) {
         this.nuit = nuit;
-    }
-
-    public String getTipo() {
-        return tipo;
-    }
-
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
     }
 
     public String getUsername() {
@@ -228,27 +219,19 @@ public class User implements Serializable {
         isNotLocked = notLocked;
     }
 
-    public List<Loan> getLoanList() {
-        return loanList;
+    public List<com.supportportal.domain.Account> getAccounts() {
+        return accounts;
     }
 
-    public void setLoanList(List<Loan> loanList) {
-        this.loanList = loanList;
+    public void setAccounts(List<Account> accounts) {
+        this.accounts = accounts;
     }
 
-    public List<Account> getAccountList() {
-        return accountList;
-    }
-
-    public void setAccountList(List<Account> accountList) {
-        this.accountList = accountList;
-    }
-
-    public List<Payment> getPaymentList() {
-        return paymentList;
-    }
-
-    public void setPaymentList(List<Payment> paymentList) {
-        this.paymentList = paymentList;
+    public void addAccount(Account account) {
+        if (getAccounts() == null) {
+            this.accounts = new ArrayList<>();
+        }
+        getAccounts().add(account);
+        account.setUser(this);
     }
 }
