@@ -39,11 +39,14 @@ public class User implements Serializable {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Account> accounts;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Loan> loans;
+
     public User() {
         super();
     }
 
-    public User(Long id, String userId, String nome, String apelido, String nascimento, String morada, String b_i, String nuit, String username, String password, String email, String profileImageUrl, Date lastLoginDate, Date lastLoginDateDisplay, Date joinDate, String role, String[] authorities, boolean isActive, boolean isNotLocked, List<Account> accounts) {
+    public User(Long id, String userId, String nome, String apelido, String nascimento, String morada, String b_i, String nuit, String username, String password, String email, String profileImageUrl, Date lastLoginDate, Date lastLoginDateDisplay, Date joinDate, String role, String[] authorities, boolean isActive, boolean isNotLocked, List<Account> accounts , List<Loan> loans) {
         super();
         this.id = id;
         this.userId = userId;
@@ -65,6 +68,7 @@ public class User implements Serializable {
         this.isActive = isActive;
         this.isNotLocked = isNotLocked;
         this.accounts = accounts;
+        this.loans = loans;
     }
 
     public Long getId() {
@@ -219,14 +223,13 @@ public class User implements Serializable {
         isNotLocked = notLocked;
     }
 
-    public List<com.supportportal.domain.Account> getAccounts() {
+    public List<Account> getAccounts() {
         return accounts;
     }
 
     public void setAccounts(List<Account> accounts) {
         this.accounts = accounts;
     }
-
     public void addAccount(Account account) {
         if (getAccounts() == null) {
             this.accounts = new ArrayList<>();
@@ -234,4 +237,19 @@ public class User implements Serializable {
         getAccounts().add(account);
         account.setUser(this);
     }
+
+    public List<Loan> getLoans() {
+        return loans;
+    }
+
+    public void setLoans(List<Loan> loans) {
+        this.loans = loans;
+    }
+    public void registerLoan(Loan loan) {
+        if (getLoans() == null) {
+            this.loans = new ArrayList<>();
+       }
+        getLoans().add(loan);
+        loan.setUser(this);
+   }
 }

@@ -8,19 +8,16 @@ import java.util.Date;
 @DiscriminatorValue("W")
 public class Withdraw extends Operation {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
 
-	public Withdraw() {
-		super();
-	}
+    public Withdraw() {
+        super();
+    }
 
-	public Withdraw(Date operationDate, double amount, String typeOperation, Account account) {
-		super(operationDate, amount, typeOperation, account);
-	}
-	
-	
-
+    public Withdraw(Date operationDate, double amount, String typeOperation, Account account) {
+        super(operationDate, amount, typeOperation, account);
+    }
 }

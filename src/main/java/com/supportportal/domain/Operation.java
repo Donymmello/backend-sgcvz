@@ -78,5 +78,4 @@ public class Operation implements Serializable {
     public void setAccount(Account account) {
         this.account = account;
     }
-
 }

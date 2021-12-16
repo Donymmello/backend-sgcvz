@@ -8,17 +8,18 @@ import java.util.Date;
 @DiscriminatorValue("C")
 public class Credit extends Operation {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
 
-	public Credit() {
-		super();
-	}
+    public Credit() {
+        super();
+    }
 
-	public Credit(Date operationDate, double amount, String typeOperation, Account account) {
-		super(operationDate, amount, typeOperation, account);
-	}
+    public Credit(Date operationDate, double amount, String typeOperation, Account account) {
+        super(operationDate, amount, typeOperation, account);
+    }
 
 }
+

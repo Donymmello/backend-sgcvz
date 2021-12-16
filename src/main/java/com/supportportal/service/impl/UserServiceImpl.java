@@ -1,9 +1,11 @@
 package com.supportportal.service.impl;
 
 import com.supportportal.domain.*;
+import com.supportportal.enumeration.LoanStatus;
 import com.supportportal.enumeration.Role;
 import com.supportportal.exception.domain.*;
 import com.supportportal.repository.AccountDao;
+import com.supportportal.repository.LoanRepository;
 import com.supportportal.repository.OperationDao;
 import com.supportportal.repository.UserRepository;
 import com.supportportal.service.EmailService;
@@ -40,7 +42,9 @@ import java.util.stream.Collectors;
 
 import static com.supportportal.constant.FileConstant.*;
 import static com.supportportal.constant.UserImplConstant.*;
-import static com.supportportal.enumeration.Role.ROLE_SUPER_ADMIN;
+//import static com.supportportal.enumeration.Role.ROLE_SUPER_ADMIN;
+import static com.supportportal.enumeration.LoanStatus.PENDING;
+import static com.supportportal.enumeration.Role.ROLE_USER;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.springframework.http.MediaType.*;
@@ -52,13 +56,15 @@ import static org.springframework.http.MediaType.*;
 public class UserServiceImpl implements UserService, UserDetailsService {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
     private final UserRepository userRepository;
+    private final LoanRepository loanRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final LoginAttemptService loginAttemptService;
     private final EmailService emailService;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, AccountDao accountDao,OperationDao operationDao, BCryptPasswordEncoder passwordEncoder, LoginAttemptService loginAttemptService, EmailService emailService) {
+    public UserServiceImpl(LoanRepository loanRepository, UserRepository userRepository, AccountDao accountDao, OperationDao operationDao, BCryptPasswordEncoder passwordEncoder, LoginAttemptService loginAttemptService, EmailService emailService) {
         this.userRepository = userRepository;
+        this.loanRepository = loanRepository;
         this.passwordEncoder = passwordEncoder;
         this.loginAttemptService = loginAttemptService;
         this.emailService = emailService;
@@ -66,10 +72,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Autowired
     private AccountDao accountDao;
-
     @Autowired
     private OperationDao operationDao;
-
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -106,12 +110,12 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         user.setPassword(encodePassword(password));
         user.setActive(true);
         user.setNotLocked(true);
-        user.setRole(ROLE_SUPER_ADMIN.name());
+        //user.setRole(ROLE_SUPER_ADMIN.name());
         //user.setRole(ROLE_ADMIN.name());
-        //user.setRole(ROLE_USER.name());
-        user.setAuthorities(ROLE_SUPER_ADMIN.getAuthorities());
+        user.setRole(ROLE_USER.name());
+        //user.setAuthorities(ROLE_SUPER_ADMIN.getAuthorities());
         //user.setAuthorities(ROLE_ADMIN.getAuthorities());
-        //user.setAuthorities(ROLE_USER.getAuthorities());
+        user.setAuthorities(ROLE_USER.getAuthorities());
         user.setProfileImageUrl(getTemporaryProfileImageUrl(username));
         userRepository.save(user);
         LOGGER.info("New user password: " + password);
@@ -145,6 +149,23 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         LOGGER.info("New user password: " + password);
         return user;
     }
+    @Override
+    public Loan registerLoan (Loan loan, long id){
+        User user = userRepository.findById(id).orElse(null);
+        loan.setCreatedOn(new Date());
+        loan.setLoanStatus(PENDING.name());
+        user.registerLoan(loan);
+        return loanRepository.save(loan);
+    }
+    //@Override
+    //public Loan addNewLoan(String loanStatus, double amount) {
+        //Loan loan = new Loan();
+        //loan.setLoanStatus(getLoanStatusEnumName(loanStatus).name());
+        //loan.setAuthorities(getLoanStatusEnumName(loanStatus).getAuthorities());
+        //loan.setAmount(amount);
+        //loanRepository.save(loan);
+        //return loan;
+    //}
 
     @Override
     public User updateUser(String currentUsername, String newNome, String newApelido, String newNascimento, String newMorada, String newB_i, String newNuit, String newUsername, String newEmail, String role, boolean isNonLocked, boolean isActive, MultipartFile profileImage) throws UserNotFoundException, UsernameExistException, EmailExistException, IOException, NotAnImageFileException {
@@ -187,6 +208,97 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
+    public List<Operation> checkingAccount(int number) {
+        return operationDao.checkingAccount(number);
+    }
+
+    @Override
+    public Operation deposit(int number, double amount) {
+        String deposit = "deposit";
+        Account account = accountDao.findById(number).orElse(null);
+        Credit credit = new Credit(new Date(), amount, deposit, account);
+        account.setBalance(account.getBalance() + amount);
+        accountDao.save(account);
+        return operationDao.save(credit);
+    }
+
+    @Override
+    public Operation debit(int number, double amount) {
+        String debit = "debit";
+        Account account = accountDao.findById(number).orElse(null);
+        double checkout = 0;
+        if (account instanceof BusinessAccount) {
+            checkout = ((BusinessAccount) account).getLoan();
+        }
+
+        if (account.getBalance() + checkout < amount) {
+            throw new RuntimeException("Insufficient balance");
+        }
+        Withdraw withdraw = new Withdraw(new Date(), amount, debit, account);
+        account.setBalance(account.getBalance() - amount);
+        accountDao.save(account);
+
+        return operationDao.save(withdraw);
+    }
+
+    @Override
+    public Operation transfer(int number1, int number2, Operation operation) {
+        if (number1 == number2) {
+            throw new RuntimeException("Cannot transfer to the same account ");
+        }
+        deposit(number1, operation.getAmount());
+        debit(number2, operation.getAmount());
+        return operationDao.save(operation);
+    }
+
+    @Override
+    public void debitOperation(int number, double amount) {
+        Account account = accountDao.findById(number).orElse(null);
+        debit(account.getId(), amount);
+    }
+
+    @Override
+    public void depositOperation(int number, double amount) {
+        Account account = accountDao.findById(number).orElse(null);
+        deposit(account.getId(), amount);
+    }
+
+    @Override
+    public BusinessAccount editBusinessAccount(BusinessAccount businessAccount, int id) {
+        BusinessAccount businessAccount2 = (BusinessAccount) accountDao.findById(id).orElse(null);
+        businessAccount2.setLoan(businessAccount.getLoan());
+        businessAccount2.setBalance(businessAccount.getBalance() + businessAccount.getLoan());
+        return accountDao.save(businessAccount2);
+    }
+
+    @Override
+    public List<Operation> findWithdraws(int id) {
+        List<Operation> operations = accountDao.getOne(id).getOperations().stream().filter(w -> w instanceof Withdraw)
+                .collect(Collectors.toList());
+        return operations;
+    }
+
+    @Override
+    public List<Operation> findCredits(int id) {
+        List<Operation> operations = accountDao.getOne(id).getOperations().stream().filter(c -> c instanceof Credit)
+                .collect(Collectors.toList());
+        return operations;
+    }
+
+    @Override
+    public List<Account> findBusinessAccountAccounts(long id) {
+        List<Account> accounts = userRepository.getOne(id).getAccounts().stream().filter(s -> s instanceof BusinessAccount)
+                .collect(Collectors.toList());
+        return accounts;
+    }
+
+    @Override
+    public List<Account> findAccountsForUser(long id) {
+        User user = userRepository.findById(id).orElse(null);
+        return user.getAccounts();
+    }
+
+    @Override
     public List<User> getUsers() {
         return userRepository.findAll();
     }
@@ -209,60 +321,9 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         userRepository.deleteById(user.getId());
     }
 
-
     @Override
-    public List<Operation> checkingAccount(int code) {
-        return operationDao.checkingAccount(code);
-    }
-
-    @Override
-    public Operation deposit(int code, double amount) {
-        String deposit = "deposit";
-        Account account = accountDao.findById(code).orElse(null);
-        Credit credit = new Credit(new Date(), amount, deposit, account);
-        account.setBalance(account.getBalance() + amount);
-        accountDao.save(account);
-        return operationDao.save(credit);
-    }
-
-    @Override
-    public Operation debit(int code, double amount) {
-        String debit = "debit";
-        Account account = accountDao.findById(code).orElse(null);
-        double checkout = 0;
-        if (account instanceof StandingAccount) {
-            checkout = ((StandingAccount) account).getLoan();
-        }
-
-        if (account.getBalance() + checkout < amount) {
-            throw new RuntimeException("Insufficient balance");
-        }
-        Withdraw withdraw = new Withdraw(new Date(), amount, debit, account);
-        account.setBalance(account.getBalance() - amount);
-        accountDao.save(account);
-
-        return operationDao.save(withdraw);
-    }
-
-    @Override
-    public Operation transfer(int code1, int code2, Operation operation) {
-        if (code1 == code2) {
-            throw new RuntimeException("Cannot transfer to the same account ");
-        }
-        deposit(code1, operation.getAmount());
-        debit(code2, operation.getAmount());
-        return operationDao.save(operation);
-    }
-
-    @Override
-    public void depositOperation(int code, double amount) {
-        Account account = accountDao.findById(code).orElse(null);
-        deposit(account.getId(), amount);
-    }
-
-    @Override
-    public StandingAccount addStandingAccount(StandingAccount standingAccount, long id) {
-        char[] chars = "0123456789abcdefghijklmnopqrstuvwxyz".toCharArray();
+    public BusinessAccount addAccount(BusinessAccount businessAccount, long id) {
+        char[] chars = "0123456789".toCharArray();
         StringBuilder sb = new  StringBuilder(6);
         Random random = new Random();
         for (int  i = 0; i < 6; i++) {
@@ -271,83 +332,10 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         }
         String output = sb.toString();
         User user = userRepository.findById(id).orElse(null);
-        standingAccount.setCreateDate(new Date());
-        standingAccount.setCode(output);
-        user.addAccount(standingAccount);
-        return accountDao.save(standingAccount);
-    }
-
-    @Override
-    public void debitOperation(int code, double amount) {
-        Account account = accountDao.findById(code).orElse(null);
-        debit(account.getId(), amount);
-    }
-
-    @Override
-    public SavingsAccount addSavingsAccount(SavingsAccount savingsAccount, long id) {
-        char[] chars = "0123456789abcdefghijklmnopqrstuvwxyz".toCharArray();
-        StringBuilder sb = new StringBuilder(6);
-        Random random = new Random();
-
-        for (int i = 0; i < 6; i++) {
-            char c = chars[random.nextInt(chars.length)];
-            sb.append(c);
-        }
-        String output = sb.toString();
-        User user = userRepository.findById(id).orElse(null);
-        savingsAccount.setCreateDate(new  Date());
-        savingsAccount.setCode(output);
-        user.addAccount(savingsAccount);
-        return accountDao.save(savingsAccount);
-    }
-
-    @Override
-    public List<Operation> findWithdraws(int id) {
-        List<Operation> operations = accountDao.getOne(id).getOperations().stream().filter(w -> w instanceof Withdraw)
-                .collect(Collectors.toList());
-        return operations;
-    }
-
-    @Override
-    public List<Operation> findCredits(int id) {
-        List<Operation> operations = accountDao.getOne(id).getOperations().stream().filter(c -> c instanceof Credit)
-                .collect(Collectors.toList());
-        return operations;
-    }
-
-    @Override
-    public List<Account> findStandingAccountAccounts(long id) {
-        List<Account> accounts = userRepository.getOne(id).getAccounts().stream().filter(s -> s instanceof StandingAccount)
-                .collect(Collectors.toList());
-        return accounts;
-    }
-
-    @Override
-    public List<Account> findSavingsAccountAccounts(long id) {
-        List<Account> accounts = userRepository.getOne(id).getAccounts().stream().filter(s -> s instanceof SavingsAccount)
-                .collect(Collectors.toList());
-        return accounts;
-    }
-
-    public List<Account> findAccountsForUser(long id) {
-        User user = userRepository.findById(id).orElse(null);
-        return user.getAccounts();
-    }
-
-    @Override
-    public StandingAccount editStandingAccount(StandingAccount standingAccount, int id) {
-        StandingAccount standingAccount2 = (StandingAccount) accountDao.findById(id).orElse(null);
-        standingAccount2.setLoan(standingAccount.getLoan());
-        standingAccount2.setBalance(standingAccount.getBalance() + standingAccount.getLoan());
-        return accountDao.save(standingAccount2);
-    }
-
-    @Override
-    public SavingsAccount editSavingsAccount(SavingsAccount savingsAccount, int id) {
-        SavingsAccount savingsAccount2 = (SavingsAccount) accountDao.findById(id).orElse(null);
-        savingsAccount2.setTax(savingsAccount.getTax());
-        savingsAccount2.setBalance(savingsAccount2.getBalance() - savingsAccount.getTax());
-        return accountDao.save(savingsAccount2);
+        businessAccount.setCreateDate(new Date());
+        businessAccount.setNumber(output);
+        user.addAccount(businessAccount);
+        return accountDao.save(businessAccount);
     }
 
     private void saveProfileImage(User user, MultipartFile profileImage) throws IOException, NotAnImageFileException {
@@ -375,6 +363,10 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     private Role getRoleEnumName(String role) {
         return Role.valueOf(role.toUpperCase());
+    }
+
+    private LoanStatus getLoanStatusEnumName(String loanStatus) {
+        return LoanStatus.valueOf(loanStatus.toUpperCase());
     }
 
     private String getTemporaryProfileImageUrl(String username) {
@@ -425,8 +417,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
             }
             return null;
         }
+
     }
-
-
 
 }

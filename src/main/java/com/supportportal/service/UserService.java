@@ -31,35 +31,29 @@ public interface UserService {
 
     List<Operation> checkingAccount(int code);
 
-    Operation deposit(int code, double amount);
+    Operation deposit(int number, double amount);
 
-    Operation debit(int code, double amount);
+    Operation debit(int number, double amount);
 
-    Operation transfer(int code1, int code2, Operation operation);
+    Operation transfer(int number1, int number2, Operation operation);
 
-    void debitOperation(int code, double amount);
+    void debitOperation(int number, double amount);
 
-    void depositOperation(int code, double amount);
+    void depositOperation(int number, double amount);
 
-    StandingAccount addStandingAccount(StandingAccount standingAccount, long id);
-
-    SavingsAccount addSavingsAccount(SavingsAccount savingsAccount, long id);
-
-    StandingAccount editStandingAccount(StandingAccount standingAccount, int id);
-
-    SavingsAccount editSavingsAccount(SavingsAccount savingsAccount, int id);
-
-    List<Operation> findWithdraws(int id);
+    BusinessAccount editBusinessAccount(BusinessAccount businessAccount, int id);
 
     List<Operation> findCredits(int id);
 
-    List<Account> findStandingAccountAccounts(long id);
+    List<Operation> findWithdraws(int id);
 
-    List<Account> findSavingsAccountAccounts(long id);
+    List<Account> findBusinessAccountAccounts(long id);
 
     List<Account> findAccountsForUser(long id);
 
+    BusinessAccount addAccount(BusinessAccount businessAccount, long id);
 
+    //Loan addNewLoan (String loanStatus, double amount);
 
-
+    Loan registerLoan(Loan loan, long id);
 }

@@ -13,103 +13,102 @@ import java.util.List;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public class Account implements Serializable {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private Integer id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Integer id;
 
-	private String code;
+    private String number;
 
-	private Date createDate;
+    private Date createDate;
 
-	private double balance;
+    private double balance;
 
-	@ManyToOne
-	@JsonBackReference(value = "user")
-	private User user;
+    @ManyToOne
+    @JsonBackReference(value = "user")
+    private User user;
 
-	@OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
-	private List<Operation> operations;
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
+    private List<Operation> operations;
 
-	public Account() {
-		super();
-	}
+    public Account() {
+        super();
+    }
 
-	public Account(String code, Date createDate, double balance, User user) {
-		super();
-		this.code = code;
-		this.createDate = createDate;
-		this.balance = balance;
-		this.user = user;
-	}
+    public Account(String number, Date createDate, double balance, User user) {
+        super();
+        this.number = number;
+        this.createDate = createDate;
+        this.balance = balance;
+        this.user = user;
+    }
 
-	public Account(String code, Date createDate, double balance, User user, List<Operation> operations) {
-		super();
-		this.code = code;
-		this.createDate = createDate;
-		this.balance = balance;
-		this.user = user;
-		this.operations = operations;
-	}
+    public Account(String number, Date createDate, double balance, User user, List<Operation> operations) {
+        super();
+        this.number = number;
+        this.createDate = createDate;
+        this.balance = balance;
+        this.user = user;
+        this.operations = operations;
+    }
 
-	public Integer getId() {
-		return id;
-	}
+    public Integer getId() {
+        return id;
+    }
 
-	public void setId(Integer id) {
-		this.id = id;
-	}
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
-	public String getCode() {
-		return code;
-	}
+    public String getNumber() {
+        return number;
+    }
 
-	public void setCode(String code) {
-		this.code = code;
-	}
+    public void setNumber(String number) {
+        this.number = number;
+    }
 
-	public Date getCreateDate() {
-		return createDate;
-	}
+    public Date getCreateDate() {
+        return createDate;
+    }
 
-	public void setCreateDate(Date createDate) {
-		this.createDate = createDate;
-	}
+    public void setCreateDate(Date createDate) {
+        this.createDate = createDate;
+    }
 
-	public double getBalance() {
-		return balance;
-	}
+    public double getBalance() {
+        return balance;
+    }
 
-	public void setBalance(double balance) {
-		this.balance = balance;
-	}
+    public void setBalance(double balance) {
+        this.balance = balance;
+    }
 
-	public User getUser() {
-		return user;
-	}
+    public User getUser() {
+        return user;
+    }
 
-	public void setUser(User user) {
-		this.user = user;
-	}
+    public void setUser(User user) {
+        this.user = user;
+    }
 
-	public List<Operation> getOperations() {
-		return operations;
-	}
+    public List<Operation> getOperations() {
+        return operations;
+    }
 
-	public void setOperations(List<Operation> operations) {
-		this.operations = operations;
-	}
+    public void setOperations(List<Operation> operations) {
+        this.operations = operations;
+    }
 
-	public void doOperation(Operation operation) {
-		if (getOperations() == null) {
-			this.operations = new ArrayList<>();
-		}
-		getOperations().add(operation);
-		operation.setAccount(this);
-	}
-
+    public void doOperation(Operation operation) {
+        if (getOperations() == null) {
+            this.operations = new ArrayList<>();
+        }
+        getOperations().add(operation);
+        operation.setAccount(this);
+    }
 }
