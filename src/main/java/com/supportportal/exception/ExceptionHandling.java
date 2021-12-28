@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.persistence.NoResultException;
+import javax.security.auth.login.AccountNotFoundException;
 import java.io.IOException;
 import java.util.Objects;
 
@@ -65,18 +66,18 @@ public class ExceptionHandling implements ErrorController {
         return createHttpResponse(BAD_REQUEST, exception.getMessage());
     }
 
-    @ExceptionHandler(AccountExistException.class)
-    public ResponseEntity<HttpResponse> accountExistException(AccountExistException exception) {
-        return createHttpResponse(BAD_REQUEST, exception.getMessage());
-    }
-    @ExceptionHandler(PaymentExistException.class)
-    public ResponseEntity<HttpResponse> paymentExistException(PaymentExistException exception) {
-        return createHttpResponse(BAD_REQUEST, exception.getMessage());
-    }
-    @ExceptionHandler(LoanExistException.class)
-    public ResponseEntity<HttpResponse> emprestimoExistException(LoanExistException exception) {
-        return createHttpResponse(BAD_REQUEST, exception.getMessage());
-    }
+    //@ExceptionHandler(AccountExistException.class)
+    //public ResponseEntity<HttpResponse> accountExistException(AccountExistException exception) {
+        //return createHttpResponse(BAD_REQUEST, exception.getMessage());
+    //}
+    //@ExceptionHandler(PaymentExistException.class)
+    //public ResponseEntity<HttpResponse> paymentExistException(PaymentExistException exception) {
+        //return createHttpResponse(BAD_REQUEST, exception.getMessage());
+    //}
+    //@ExceptionHandler(LoanExistException.class)
+    //public ResponseEntity<HttpResponse> emprestimoExistException(LoanExistException exception) {
+        //return createHttpResponse(BAD_REQUEST, exception.getMessage());
+    //}
 
     @ExceptionHandler(EmailNotFoundException.class)
     public ResponseEntity<HttpResponse> emailNotFoundException(EmailNotFoundException exception) {
@@ -88,18 +89,18 @@ public class ExceptionHandling implements ErrorController {
         return createHttpResponse(BAD_REQUEST, exception.getMessage());
     }
 
-    @ExceptionHandler(PaymentNotFoundException.class)
-    public ResponseEntity<HttpResponse> paymentNotFoundException(PaymentNotFoundException exception) {
-        return createHttpResponse(BAD_REQUEST, exception.getMessage());
-    }
+    //@ExceptionHandler(PaymentNotFoundException.class)
+    //public ResponseEntity<HttpResponse> paymentNotFoundException(PaymentNotFoundException exception) {
+        //return createHttpResponse(BAD_REQUEST, exception.getMessage());
+    //}
     @ExceptionHandler(AccountNotFoundException.class)
     public ResponseEntity<HttpResponse> accountNotFoundException(AccountNotFoundException exception) {
         return createHttpResponse(BAD_REQUEST, exception.getMessage());
     }
-    @ExceptionHandler(LoanNotFoundException.class)
-    public ResponseEntity<HttpResponse> emprestimoNotFoundException(LoanNotFoundException exception) {
-        return createHttpResponse(BAD_REQUEST, exception.getMessage());
-    }
+    //@ExceptionHandler(LoanNotFoundException.class)
+   // public ResponseEntity<HttpResponse> emprestimoNotFoundException(LoanNotFoundException exception) {
+        //return createHttpResponse(BAD_REQUEST, exception.getMessage());
+    //}
 
 //    @ExceptionHandler(NoHandlerFoundException.class)
 //    public ResponseEntity<HttpResponse> noHandlerFoundException(NoHandlerFoundException e) {

@@ -2,6 +2,7 @@ package com.supportportal.domain;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
+
 import javax.persistence.*;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -17,15 +18,25 @@ public class Loan implements Serializable {
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-
     private Integer id;
 
     @NotNull
     @Min(1000)
-    @Max(10000)
+    @Max(100000)
     private double amount;
+
+    @NotNull
+    @Min(10000)
+    private double monthlyIncome;
+
+    @NotNull
+    @Min(value = 10000, message = "Pessimo valor dado pelo INSS ")
+    private Integer inss;
+
     private String loanStatus;
+
     private String[] authorities;
+
     @NotNull
     private Date createdOn;
 
@@ -37,9 +48,11 @@ public class Loan implements Serializable {
         super();
     }
 
-    public Loan(double amount, String loanStatus, Date createdOn, User user,  String[] authorities) {
+    public Loan(double amount, double monthlyIncome, Integer inss, String loanStatus, Date createdOn, User user,  String[] authorities) {
         super();
         this.amount = amount;
+        this.monthlyIncome = monthlyIncome;
+        this.inss = inss;
         this.loanStatus = loanStatus;
         this.authorities = authorities;
         this.createdOn = createdOn;
@@ -57,6 +70,16 @@ public class Loan implements Serializable {
     public void setId(Integer id) {
         this.id = id;
     }
+
+    public double getMonthlyIncome() {
+        return monthlyIncome;
+    }
+
+    public void setMonthlyIncome(double monthlyIncome) {
+        this.monthlyIncome = monthlyIncome;
+    }
+
+
 
     public double getAmount() {
         return amount;
@@ -76,6 +99,14 @@ public class Loan implements Serializable {
 
     public void setCreatedOn(Date createdOn) {
         this.createdOn = createdOn;
+    }
+
+    public Integer getInss() {
+        return inss;
+    }
+
+    public void setInss(Integer inss) {
+        this.inss = inss;
     }
 
     public User getUser() {

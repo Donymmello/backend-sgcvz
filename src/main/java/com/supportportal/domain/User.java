@@ -11,6 +11,8 @@ import java.util.List;
 @Entity
 @Table(name = "users")
 public class User implements Serializable {
+
+    private static final long SerialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(nullable = false, updatable = false)
@@ -36,8 +38,8 @@ public class User implements Serializable {
     private boolean isActive;
     private boolean isNotLocked;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Account> accounts;
+    //@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    //private List<Account> accounts;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Loan> loans;
@@ -46,9 +48,8 @@ public class User implements Serializable {
         super();
     }
 
-    public User(Long id, String userId, String nome, String apelido, String nascimento, String morada, String b_i, String nuit, String username, String password, String email, String profileImageUrl, Date lastLoginDate, Date lastLoginDateDisplay, Date joinDate, String role, String[] authorities, boolean isActive, boolean isNotLocked, List<Account> accounts , List<Loan> loans) {
+    public User(String userId, String nome, String apelido, String nascimento, String morada, String b_i, String nuit, String username, String password, String email, String profileImageUrl, Date lastLoginDate, Date lastLoginDateDisplay, Date joinDate, String role, String[] authorities, boolean isActive, boolean isNotLocked , List<Loan> loans) {
         super();
-        this.id = id;
         this.userId = userId;
         this.nome = nome;
         this.apelido = apelido;
@@ -67,7 +68,7 @@ public class User implements Serializable {
         this.authorities = authorities;
         this.isActive = isActive;
         this.isNotLocked = isNotLocked;
-        this.accounts = accounts;
+        //this.accounts = accounts;
         this.loans = loans;
     }
 
@@ -223,21 +224,6 @@ public class User implements Serializable {
         isNotLocked = notLocked;
     }
 
-    public List<Account> getAccounts() {
-        return accounts;
-    }
-
-    public void setAccounts(List<Account> accounts) {
-        this.accounts = accounts;
-    }
-    public void addAccount(Account account) {
-        if (getAccounts() == null) {
-            this.accounts = new ArrayList<>();
-        }
-        getAccounts().add(account);
-        account.setUser(this);
-    }
-
     public List<Loan> getLoans() {
         return loans;
     }
@@ -245,6 +231,7 @@ public class User implements Serializable {
     public void setLoans(List<Loan> loans) {
         this.loans = loans;
     }
+
     public void registerLoan(Loan loan) {
         if (getLoans() == null) {
             this.loans = new ArrayList<>();
@@ -252,4 +239,12 @@ public class User implements Serializable {
         getLoans().add(loan);
         loan.setUser(this);
    }
+
+    //public List<Account> getAccounts() {
+        //return accounts;
+    //}
+
+    //public void setAccounts(List<Account> accounts) {
+        //this.accounts = accounts;
+   // }
 }

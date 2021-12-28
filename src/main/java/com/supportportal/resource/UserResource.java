@@ -3,7 +3,6 @@ package com.supportportal.resource;
 import com.supportportal.domain.*;
 import com.supportportal.exception.ExceptionHandling;
 import com.supportportal.exception.domain.*;
-import com.supportportal.repository.AccountDao;
 import com.supportportal.service.UserService;
 import com.supportportal.utility.JWTTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,9 +45,6 @@ public class UserResource extends ExceptionHandling {
         this.userService = userService;
         this.jwtTokenProvider = jwtTokenProvider;
     }
-
-    @Autowired
-    private AccountDao accountDao;
 
     @PostMapping("/login")
     public ResponseEntity<User> login(@RequestBody User user) {
@@ -165,51 +161,6 @@ public class UserResource extends ExceptionHandling {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
     }
 
-    @GetMapping("/checkingAccount/{number}")
-    List<Operation> checkingAccount(@PathVariable int number) {
-        return userService.checkingAccount(number);
-    }
-
-    @PostMapping("/depositOperation/{number}")
-    void depositOperation(@PathVariable int number, @RequestBody Operation operation) {
-        userService.depositOperation(number, operation.getAmount());
-    }
-
-    @PostMapping("/addAccount/{id}")
-    BusinessAccount addAccount(@RequestBody BusinessAccount businessAccount, @PathVariable long id) {
-        return userService.addAccount(businessAccount, id);
-    }
-
-    @PostMapping("/debitOperation/{number}")
-    void debitOperation(@PathVariable int number, @RequestBody Operation operation) {
-        userService.debitOperation(number, operation.getAmount());
-    }
-
-    @GetMapping("/findCredits/{id}")
-    List<Operation> findCredits(@PathVariable int id) {
-        return userService.findCredits(id);
-    }
-
-    @PostMapping("/transfer/{number1}/{number2}")
-    Operation transfer(@PathVariable int number1, @PathVariable int number2, @RequestBody Operation operation) {
-        return userService.transfer(number1, number2, operation);
-    }
-
-    @GetMapping("/findBusinessAccountAccounts/{id}")
-    List<Account> findBusinessAccountAccounts(@PathVariable long id) {
-        return userService.findBusinessAccountAccounts(id);
-    }
-
-    @GetMapping("/findAccountById/{id}")
-    Account findAccountById(@PathVariable int id) {
-        return accountDao.findById(id).orElse(null);
-    }
-
-    @PostMapping("/editBusinessAccount/{id}")
-    BusinessAccount editBusinessAccount(@RequestBody BusinessAccount businessAccount, @PathVariable int id) {
-        return userService.editBusinessAccount(businessAccount, id);
-    }
-
     //@PostMapping("/addLoan/{id}")
     //public ResponseEntity<Loan> addNewLoan(@RequestParam("loanStatus") String loanStatus,
                                            //@RequestParam("amount") double amount) {
@@ -225,5 +176,9 @@ public class UserResource extends ExceptionHandling {
     @PostMapping("/registerLoan/{id}")
     Loan registerLoan(@RequestBody Loan loan, @PathVariable long id) {
         return userService.registerLoan(loan, id);
+    }
+    @GetMapping("/findUser/{id}")
+    User findUser(@PathVariable Long id) {
+        return userService.findUser(id);
     }
 }

@@ -1,12 +1,12 @@
 package com.supportportal.service.impl;
 
-import com.supportportal.domain.*;
+import com.supportportal.domain.Loan;
+import com.supportportal.domain.User;
+import com.supportportal.domain.UserPrincipal;
 import com.supportportal.enumeration.LoanStatus;
 import com.supportportal.enumeration.Role;
 import com.supportportal.exception.domain.*;
-import com.supportportal.repository.AccountDao;
 import com.supportportal.repository.LoanRepository;
-import com.supportportal.repository.OperationDao;
 import com.supportportal.repository.UserRepository;
 import com.supportportal.service.EmailService;
 import com.supportportal.service.LoginAttemptService;
@@ -24,11 +24,13 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+// import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.mail.MessagingException;
 import javax.transaction.Transactional;
+import javax.validation.Valid;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -37,13 +39,11 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Random;
-import java.util.stream.Collectors;
 
 import static com.supportportal.constant.FileConstant.*;
 import static com.supportportal.constant.UserImplConstant.*;
 //import static com.supportportal.enumeration.Role.ROLE_SUPER_ADMIN;
-import static com.supportportal.enumeration.LoanStatus.PENDING;
+import static com.supportportal.enumeration.LoanStatus.PENDENTE;
 import static com.supportportal.enumeration.Role.ROLE_USER;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -62,18 +62,13 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     private final EmailService emailService;
 
     @Autowired
-    public UserServiceImpl(LoanRepository loanRepository, UserRepository userRepository, AccountDao accountDao, OperationDao operationDao, BCryptPasswordEncoder passwordEncoder, LoginAttemptService loginAttemptService, EmailService emailService) {
+    public UserServiceImpl(LoanRepository loanRepository, UserRepository userRepository, BCryptPasswordEncoder passwordEncoder, LoginAttemptService loginAttemptService, EmailService emailService) {
         this.userRepository = userRepository;
         this.loanRepository = loanRepository;
         this.passwordEncoder = passwordEncoder;
         this.loginAttemptService = loginAttemptService;
         this.emailService = emailService;
     }
-
-    @Autowired
-    private AccountDao accountDao;
-    @Autowired
-    private OperationDao operationDao;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -150,10 +145,13 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return user;
     }
     @Override
-    public Loan registerLoan (Loan loan, long id){
+    public Loan registerLoan (@Valid final Loan loan, long id){
         User user = userRepository.findById(id).orElse(null);
         loan.setCreatedOn(new Date());
-        loan.setLoanStatus(PENDING.name());
+        loan.setLoanStatus("REJEITADO");
+        if(loan.getAmount() <= (1.4*loan.getMonthlyIncome())) {
+            loan.setLoanStatus(PENDENTE.name());
+        }
         user.registerLoan(loan);
         return loanRepository.save(loan);
     }
@@ -207,101 +205,35 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return user;
     }
 
-    @Override
-    public List<Operation> checkingAccount(int number) {
-        return operationDao.checkingAccount(number);
-    }
+    //@Override
+    //public Operation debit(int number, double amount) {
+       // String debit = "debit";
+        //Account account = accountDao.findById(number).orElse(null);
+        //double checkout = 0;
+        //if (account instanceof BusinessAccount) {
+            //checkout = ((BusinessAccount) account).getLoan();
+       // }
 
-    @Override
-    public Operation deposit(int number, double amount) {
-        String deposit = "deposit";
-        Account account = accountDao.findById(number).orElse(null);
-        Credit credit = new Credit(new Date(), amount, deposit, account);
-        account.setBalance(account.getBalance() + amount);
-        accountDao.save(account);
-        return operationDao.save(credit);
-    }
+        //if (account.getBalance() + checkout < amount) {
+            //throw new RuntimeException("Insufficient balance");
+       // }
+        //Withdraw withdraw = new Withdraw(new Date(), amount, debit, account);
+        //account.setBalance(account.getBalance() - amount);
+        //accountDao.save(account);
 
-    @Override
-    public Operation debit(int number, double amount) {
-        String debit = "debit";
-        Account account = accountDao.findById(number).orElse(null);
-        double checkout = 0;
-        if (account instanceof BusinessAccount) {
-            checkout = ((BusinessAccount) account).getLoan();
-        }
+        //return operationDao.save(withdraw);
+    //}
 
-        if (account.getBalance() + checkout < amount) {
-            throw new RuntimeException("Insufficient balance");
-        }
-        Withdraw withdraw = new Withdraw(new Date(), amount, debit, account);
-        account.setBalance(account.getBalance() - amount);
-        accountDao.save(account);
 
-        return operationDao.save(withdraw);
-    }
-
-    @Override
-    public Operation transfer(int number1, int number2, Operation operation) {
-        if (number1 == number2) {
-            throw new RuntimeException("Cannot transfer to the same account ");
-        }
-        deposit(number1, operation.getAmount());
-        debit(number2, operation.getAmount());
-        return operationDao.save(operation);
-    }
-
-    @Override
-    public void debitOperation(int number, double amount) {
-        Account account = accountDao.findById(number).orElse(null);
-        debit(account.getId(), amount);
-    }
-
-    @Override
-    public void depositOperation(int number, double amount) {
-        Account account = accountDao.findById(number).orElse(null);
-        deposit(account.getId(), amount);
-    }
-
-    @Override
-    public BusinessAccount editBusinessAccount(BusinessAccount businessAccount, int id) {
-        BusinessAccount businessAccount2 = (BusinessAccount) accountDao.findById(id).orElse(null);
-        businessAccount2.setLoan(businessAccount.getLoan());
-        businessAccount2.setBalance(businessAccount.getBalance() + businessAccount.getLoan());
-        return accountDao.save(businessAccount2);
-    }
-
-    @Override
-    public List<Operation> findWithdraws(int id) {
-        List<Operation> operations = accountDao.getOne(id).getOperations().stream().filter(w -> w instanceof Withdraw)
-                .collect(Collectors.toList());
-        return operations;
-    }
-
-    @Override
-    public List<Operation> findCredits(int id) {
-        List<Operation> operations = accountDao.getOne(id).getOperations().stream().filter(c -> c instanceof Credit)
-                .collect(Collectors.toList());
-        return operations;
-    }
-
-    @Override
-    public List<Account> findBusinessAccountAccounts(long id) {
-        List<Account> accounts = userRepository.getOne(id).getAccounts().stream().filter(s -> s instanceof BusinessAccount)
-                .collect(Collectors.toList());
-        return accounts;
-    }
-
-    @Override
-    public List<Account> findAccountsForUser(long id) {
-        User user = userRepository.findById(id).orElse(null);
-        return user.getAccounts();
-    }
 
     @Override
     public List<User> getUsers() {
         return userRepository.findAll();
     }
+
+    @Override
+    public User findUser(long id) {
+        return userRepository.findById(id).orElse(null);    }
 
     @Override
     public User findUserByUsername(String username) {
@@ -319,23 +251,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         Path userFolder = Paths.get(USER_FOLDER + user.getUsername()).toAbsolutePath().normalize();
         FileUtils.deleteDirectory(new File(userFolder.toString()));
         userRepository.deleteById(user.getId());
-    }
-
-    @Override
-    public BusinessAccount addAccount(BusinessAccount businessAccount, long id) {
-        char[] chars = "0123456789".toCharArray();
-        StringBuilder sb = new  StringBuilder(6);
-        Random random = new Random();
-        for (int  i = 0; i < 6; i++) {
-            char c = chars[random.nextInt(chars.length)];
-            sb.append(c);
-        }
-        String output = sb.toString();
-        User user = userRepository.findById(id).orElse(null);
-        businessAccount.setCreateDate(new Date());
-        businessAccount.setNumber(output);
-        user.addAccount(businessAccount);
-        return accountDao.save(businessAccount);
     }
 
     private void saveProfileImage(User user, MultipartFile profileImage) throws IOException, NotAnImageFileException {
@@ -401,12 +316,12 @@ public class UserServiceImpl implements UserService, UserDetailsService {
             if (currentUser == null) {
                 throw new UserNotFoundException(NO_USER_FOUND_BY_USERNAME + currentUsername);
             }
-            if (userByNewUsername != null && !currentUser.getId().equals(userByNewUsername.getId())) {
-                throw new UsernameExistException(USERNAME_ALREADY_EXISTS);
-            }
+           if ((userByNewUsername != null) && !currentUser.getId().equals(userByNewUsername.getId())) {
+               throw new UsernameExistException(USERNAME_ALREADY_EXISTS);
+           }
             if (userByNewEmail != null && !currentUser.getId().equals(userByNewEmail.getId())) {
                 throw new EmailExistException(EMAIL_ALREADY_EXISTS);
-            }
+           }
             return currentUser;
         } else {
             if (userByNewUsername != null) {
